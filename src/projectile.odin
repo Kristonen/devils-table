@@ -6,17 +6,27 @@ PROJECTILE_SPEED :: 700
 PROJECTILE_RADIUS :: 6
 PROJECTILE_LIFETIME :: 2.0
 
+Projectile_Def :: struct{
+	speed : f32,
+}
+
+PROJECTILE_NORMAL :: Projectile_Def{
+	speed = 750,
+}
+
 Projectile :: struct{
 	pos : rl.Vector2,
 	dir : rl.Vector2,
 	life : f32,
+	speed : f32,
 }
 
-projectile_spawn :: proc(projectiles : ^[dynamic]Projectile, from : rl.Vector2, dir : rl.Vector2){
+projectile_spawn :: proc(projectiles : ^[dynamic]Projectile, from : rl.Vector2, dir : rl.Vector2, speed : f32){
 	append(projectiles, Projectile{
 		pos = from,
 		dir = dir,
 		life = PROJECTILE_LIFETIME,
+		speed = speed,
 	})
 }
 

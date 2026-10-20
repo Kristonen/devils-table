@@ -1,5 +1,6 @@
 package main
 
+import "core:fmt"
 import rl "vendor:raylib"
 
 game_collision :: proc(){
@@ -10,21 +11,18 @@ game_collision :: proc(){
 
 collide_projectiles_enemies :: proc(){
 	for i := len(game.projectiles) - 1; i >= 0; i -= 1{
-		hit : bool
 		for j := len(game.enemies) - 1; j >= 0; j -= 1{
-			p := game.projectiles[i]
 			e := &game.enemies[j]
-			if projectile_touches_enemy(p, e^){
-				hit = true
-				enemy_take_damage(e, stat_get(game.stats.weapon_damage))
-				if e.hp <=0{
-					xp_gem_spawn(&game.xp_gems, e.pos)
-					unordered_remove(&game.enemies, j)
-					break
-				}
+			if !projectile_touches_enemy(game.projectiles[i], e^) do continue
+			enemy_take_damage(e, stat_get(game.stats.weapon_damage))
+			if e.hp <=0{
+				xp_gem_spawn(&game.xp_gems, e.pos)
+				unordered_remove(&game.enemies, j)
+				break
 			}
+			unordered_remove(&game.projectiles, i)
+			break
 		}
-		if hit do unordered_remove(&game.projectiles, i)
 	}
 }
 

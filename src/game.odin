@@ -38,8 +38,9 @@ game_init :: proc(){
 			offset = {WINDOW_WIDTH/2, WINDOW_HEIGHT/2},
 			zoom = 1,
 		},
+		stats = stats_init(WEAPON_PISTOL, PROJECTILE_NORMAL),
 	}
-	stat_set_base(&game.stats.weapon_damage, 10)
+	// stat_set_base(&game.stats.weapon_damage, 10)
 	// stat_add_flat(&game.stats.weapon_damage, 40)
 }
 
@@ -55,7 +56,7 @@ game_update :: proc(){
 
 	game.dt = rl.GetFrameTime()
 	player_update(&game.player, game.dt)
-	weapon_update(&game.weapon, game.enemies[:], game.dt)
+	weapon_update(&game.weapon, game.stats, game.enemies[:], game.dt)
 	camera_update(&game.camera, game.player, game.dt)
 	projectile_update(&game.projectiles, game.dt)
 

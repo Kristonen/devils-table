@@ -21,6 +21,23 @@ Stat :: struct{
 	percent : f32,
 }
 
+stats_init :: proc(weapon : Weapon_Def, projectile : Projectile_Def) -> Run_Stats{
+	return{
+		weapon_range = {
+			base = weapon.range,
+		},
+		weapon_cooldown = {
+			base = weapon.cooldown,
+		},
+		weapon_damage = {
+			base = weapon.damage,
+		},
+		projectile_speed = {
+			base = projectile.speed,
+		},
+	}
+}
+
 stat_set_base :: proc(stat : ^Stat, base : f32){
 	stat.base = base
 }
