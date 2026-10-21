@@ -15,6 +15,7 @@ collide_projectiles_enemies :: proc(){
 			e := &game.enemies[j]
 			if !projectile_touches_enemy(game.projectiles[i], e^) do continue
 			enemy_take_damage(e, stat_get(game.stats[.Weapon_Damage]))
+			fmt.println(stat_get(game.stats[.Weapon_Damage]))
 			if e.hp <=0{
 				xp_gem_spawn(&game.xp_gems, e.pos)
 				unordered_remove(&game.enemies, j)

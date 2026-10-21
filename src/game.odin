@@ -6,7 +6,7 @@ import rl "vendor:raylib"
 game : Game
 
 Game_Phase :: enum{
-	Playing, Dead
+	Playing, Dead, Level_Up,
 }
 
 Game :: struct{
@@ -76,6 +76,12 @@ game_update :: proc(){
 	game_collision()
 	if game.player.hp <=0{
 		game.phase = .Dead
+	}else if game.player.pending_level_ups > 0{
+		game.phase = .Level_Up
+	}
+
+	if rl.IsKeyPressed(.ONE){
+		upgrade_apply(&game.stats, UPGRADES[3])
 	}
 }
 
@@ -86,6 +92,14 @@ game_draw :: proc(){
 	game_draw_mode()
 	progress_bar_draw({50, WINDOW_HEIGHT - 200}, f32(game.player.hp), f32(game.player.max_hp))
 	progress_bar_draw({50, WINDOW_HEIGHT - 100}, f32(game.player.xp), f32(player_needed_xp_for_next_level(game.player)))
+
+	switch game.phase{
+	case .Playing:
+	case .Dead:
+		game_draw_end()
+	case .Level_Up:
+
+	}
 }
 
 game_draw_mode :: proc(){
@@ -99,8 +113,14 @@ game_draw_mode :: proc(){
 }
 
 game_debug_draw_mode :: proc(){
-	radius := stat_get(game.stats[.Pickup_Radius])
+
+	radius := stat_get(game.stats[.Weapon_Range])
+	rl.DrawCircleV(game.player.pos, radius, {255, 0, 0, 150})
+
+	radius = stat_get(game.stats[.Pickup_Radius])
 	rl.DrawCircleV(game.player.pos, radius, {100, 100, 100, 150})
+
+
 	// rl.DrawCircleLinesV(game.player.pos, radius, {100, 100, 100, 255})
 }
 

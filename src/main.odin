@@ -43,13 +43,13 @@ main :: proc(){
 		switch game.phase{
 		case .Playing:
 			game_update()
-			game_draw()
 		case .Dead:
 			game_draw_end()
 			if rl.IsKeyPressed(.SPACE){
 				game_init()
 			}
 		}
+		game_draw()
 		free_all(context.temp_allocator)
 	}
 }

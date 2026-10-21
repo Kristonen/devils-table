@@ -17,8 +17,8 @@ Weapon_Def :: struct{
 WEAPON_PISTOL :: Weapon_Def{
 	name = "Pistol",
 	cooldown = 0.5,
-	range = 800,
-	damage = 15,
+	range = 400,
+	damage = 10,
 }
 
 Weapon :: struct{
@@ -38,7 +38,7 @@ weapon_update :: proc(weapon : ^Weapon, stats : Run_Stats, enemies : []Enemy, dt
 	index, found := find_nearest_enemy(enemies, game.player.pos, stat_get(stats[.Weapon_Range]))
 	if !found do return
 
-	weapon.timer = stat_get(stats[.Weapon_Cooldown])
+	weapon.timer = 1/stat_get(stats[.Weapon_Rate])
 	dir := rl.Vector2Normalize(enemies[index].pos - game.player.pos)
 	projectile_spawn(&game.projectiles, game.player.pos, dir, stat_get(stats[.Projectile_Speed]))
 }

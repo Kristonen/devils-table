@@ -12,11 +12,14 @@ Player :: struct{
 	pos : rl.Vector2,
 	size : f32,
 	speed : f32,
+
 	hp : int,
 	max_hp : int,
 	invul_time : f32,
+
 	level : int,
 	xp : int,
+	pending_level_ups : int,
 }
 
 player_init :: proc() -> Player{
@@ -24,7 +27,7 @@ player_init :: proc() -> Player{
 		pos = {500, 500},
 		speed = 400,
 		size = 32,
-		hp = 10,
+		hp = MAX_HP,
 		max_hp = MAX_HP,
 		level = 1,
 		xp = 0,
@@ -60,6 +63,7 @@ player_add_xp :: proc(player : ^Player, amount : int){
 		if player.xp < needed do break
 		player.xp -= needed
 		player.level += 1
+		player.pending_level_ups += 1
 	}
 }
 
