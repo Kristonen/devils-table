@@ -35,12 +35,12 @@ weapon_update :: proc(weapon : ^Weapon, stats : Run_Stats, enemies : []Enemy, dt
 	weapon.timer = max(0, weapon.timer - dt)
 	if weapon.timer > 0 do return
 
-	index, found := find_nearest_enemy(enemies, game.player.pos, stat_get(stats.weapon_range))
+	index, found := find_nearest_enemy(enemies, game.player.pos, stat_get(stats[.Weapon_Range]))
 	if !found do return
 
-	weapon.timer = stat_get(stats.weapon_cooldown)
+	weapon.timer = stat_get(stats[.Weapon_Cooldown])
 	dir := rl.Vector2Normalize(enemies[index].pos - game.player.pos)
-	projectile_spawn(&game.projectiles, game.player.pos, dir, stat_get(stats.projectile_speed))
+	projectile_spawn(&game.projectiles, game.player.pos, dir, stat_get(stats[.Projectile_Speed]))
 }
 
 find_nearest_enemy :: proc(enemies : []Enemy, from : rl.Vector2, max_range : f32) -> (index : int, found : bool){

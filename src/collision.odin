@@ -14,7 +14,7 @@ collide_projectiles_enemies :: proc(){
 		for j := len(game.enemies) - 1; j >= 0; j -= 1{
 			e := &game.enemies[j]
 			if !projectile_touches_enemy(game.projectiles[i], e^) do continue
-			enemy_take_damage(e, stat_get(game.stats.weapon_damage))
+			enemy_take_damage(e, stat_get(game.stats[.Weapon_Damage]))
 			if e.hp <=0{
 				xp_gem_spawn(&game.xp_gems, e.pos)
 				unordered_remove(&game.enemies, j)
@@ -35,6 +35,7 @@ collide_enemies_player :: proc(){
 }
 
 collide_player_gems :: proc(){
+	radius := stat_get(game.stats[.Pickup_Radius])
 	for i := len(game.xp_gems) - 1; i >= 0; i -= 1{
 		g := game.xp_gems[i]
 		if xp_gem_touches_player(g, game.player){

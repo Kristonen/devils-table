@@ -5,6 +5,7 @@ import rl "vendor:raylib"
 
 MAX_HP :: 100
 PLAYER_INVUL_TIME :: 0.8
+PLAYER_PICKUP_RADIUS :: 80.0
 XP_NEXT_LEVEL :: 5
 
 Player :: struct{

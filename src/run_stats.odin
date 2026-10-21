@@ -2,40 +2,35 @@ package main
 
 import rl "vendor:raylib"
 
-Run_Stats :: struct{
-	weapon_range : Stat,
-	weapon_cooldown : Stat,
-	weapon_damage : Stat,
-
-	projectile_speed : Stat,
-
-	gem_pickup_radius : Stat,
-
-	enemy_hp : Stat,
-	enemy_damage : Stat,
-}
-
 Stat :: struct{
 	base : f32,
 	flat : f32,
 	percent : f32,
 }
 
+Stat_Id :: enum{
+	Weapon_Range,
+	Weapon_Cooldown,
+	Weapon_Damage,
+
+	Projectile_Speed,
+
+	Pickup_Radius,
+
+	Enemy_HP,
+	Enemy_Damage,
+}
+
+Run_Stats :: [Stat_Id]Stat
+
 stats_init :: proc(weapon : Weapon_Def, projectile : Projectile_Def) -> Run_Stats{
-	return{
-		weapon_range = {
-			base = weapon.range,
-		},
-		weapon_cooldown = {
-			base = weapon.cooldown,
-		},
-		weapon_damage = {
-			base = weapon.damage,
-		},
-		projectile_speed = {
-			base = projectile.speed,
-		},
-	}
+	stats : Run_Stats
+	stats[.Weapon_Range].base = weapon.range
+	stats[.Weapon_Cooldown].base = weapon.cooldown
+	stats[.Weapon_Damage].base = weapon.damage
+	stats[.Projectile_Speed].base = projectile.speed
+	stats[.Pickup_Radius].base = PLAYER_PICKUP_RADIUS
+	return stats
 }
 
 stat_set_base :: proc(stat : ^Stat, base : f32){

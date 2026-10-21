@@ -25,6 +25,7 @@ Game :: struct{
 
 	spawn_timer : f32,
 	weapon_timer : f32,
+	debug_mode : bool,
 }
 
 game_init :: proc(){
@@ -59,11 +60,16 @@ game_update :: proc(){
 	weapon_update(&game.weapon, game.stats, game.enemies[:], game.dt)
 	camera_update(&game.camera, game.player, game.dt)
 	projectile_update(&game.projectiles, game.dt)
+	xp_gem_update(game.xp_gems[:], game.player.pos, stat_get(game.stats[.Pickup_Radius]), game.dt)
 
 	game.spawn_timer += game.dt
 	if game.spawn_timer >= SPAWN_INTERVAL{
 		game.spawn_timer = 0
 		enemy_spawn(&game.enemies, game.player.pos)
+	}
+
+	if rl.IsKeyPressed(.F2){
+		game.debug_mode = !game.debug_mode
 	}
 
 	enemy_update(game.enemies[:], game.player.pos, game.dt)
@@ -89,6 +95,13 @@ game_draw_mode :: proc(){
 	enemy_draw(game.enemies[:])
 	projectile_draw(game.projectiles[:])
 	xp_gem_draw(game.xp_gems[:])
+	if game.debug_mode do game_debug_draw_mode()
+}
+
+game_debug_draw_mode :: proc(){
+	radius := stat_get(game.stats[.Pickup_Radius])
+	rl.DrawCircleV(game.player.pos, radius, {100, 100, 100, 150})
+	// rl.DrawCircleLinesV(game.player.pos, radius, {100, 100, 100, 255})
 }
 
 game_draw_end :: proc(){
