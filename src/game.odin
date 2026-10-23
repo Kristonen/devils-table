@@ -23,6 +23,7 @@ Game :: struct{
 	projectiles : [dynamic]Projectile,
 
 	enemies : [dynamic]Enemy,
+	spawner : Spawner,
 
 	xp_gems : [dynamic]Xp_Gem,
 
@@ -48,6 +49,9 @@ game_init :: proc(){
 			target = player.pos,
 			offset = {WINDOW_WIDTH/2, WINDOW_HEIGHT/2},
 			zoom = 1,
+		},
+		spawner = {
+			max_amount = 2,
 		},
 		stats = stats_init(WEAPON_PISTOL, PROJECTILE_NORMAL),
 	}
@@ -86,14 +90,15 @@ game_update :: proc(){
 	player_update(&game.player, game.dt)
 	weapon_update(&game.weapon, game.stats, game.enemies[:], game.dt)
 	enemy_update(game.enemies[:], game.player.pos, game.dt)
+	spawner_update(&game.spawner, game.dt)
 	camera_update(&game.camera, game.player, game.dt)
 	projectile_update(&game.projectiles, game.dt)
 	xp_gem_update(game.xp_gems[:], game.player.pos, stat_get(game.stats[.Pickup_Radius]), game.dt)
 	goal_update(&game.goal, game.dt)
 
-	game.spawn_timer += game.dt
-	if game.spawn_timer >= SPAWN_INTERVAL{
-		game.spawn_timer = 0
+	if spawner_can_spawn(game.spawner){
+		game.spawner.timer = SPAWN_INTERVAL
+		game.spawner.amount += 1
 		enemy_spawn(&game.enemies, game.player.pos)
 	}
 

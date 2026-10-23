@@ -5,7 +5,6 @@ import "core:math/rand"
 import rl "vendor:raylib"
 
 SPAWN_DISTANCE :: 1200
-SPAWN_INTERVAL :: 1.0
 
 Enemy :: struct{
 	pos : rl.Vector2,
