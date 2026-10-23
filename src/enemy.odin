@@ -13,6 +13,7 @@ Enemy :: struct{
 	speed : f32,
 	damage : int,
 	hp : f32,
+	xp : int,
 }
 
 enemy_spawn :: proc(enemies : ^[dynamic]Enemy, center : rl.Vector2){
@@ -24,6 +25,7 @@ enemy_spawn :: proc(enemies : ^[dynamic]Enemy, center : rl.Vector2){
 		speed = 150,
 		damage = 2,
 		hp = 50,
+		xp = rand.int_range(2, 8)
 	})
 }
 

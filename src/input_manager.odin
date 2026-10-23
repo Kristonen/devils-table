@@ -12,8 +12,18 @@ Input_Manager :: struct{
 	released : [Input]bool,
 }
 
-input_update :: proc(input : ^Input_Manager){
-	input.pressed[.Left] = rl.IsMouseButtonPressed(.LEFT)
-	input.down[.Left] = rl.IsMouseButtonDown(.LEFT)
-	input.released[.Left] = rl.IsMouseButtonReleased(.LEFT)
+input_update :: proc(manager : ^Input_Manager){
+	input_mouse_update(manager, .Left, .LEFT)
+}
+
+input_mouse_update :: proc(manager : ^Input_Manager, input : Input, mouse : rl.MouseButton){
+	manager.pressed[input] = rl.IsMouseButtonPressed(mouse)
+	manager.down[input] = rl.IsMouseButtonDown(mouse)
+	manager.released[input] = rl.IsMouseButtonReleased(mouse)
+}
+
+input_button_update :: proc(manager : ^Input_Manager, input : Input, button : rl.KeyboardKey){
+	manager.pressed[input] = rl.IsKeyPressed(button)
+	manager.down[input] = rl.IsKeyDown(button)
+	manager.released[input] = rl.IsKeyReleased(button)
 }

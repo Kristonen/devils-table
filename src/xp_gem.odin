@@ -11,11 +11,11 @@ Xp_Gem :: struct{
 	follow_speed : f32,
 }
 
-xp_gem_spawn :: proc(gems : ^[dynamic]Xp_Gem, pos : rl.Vector2){
+xp_gem_spawn :: proc(gems : ^[dynamic]Xp_Gem, pos : rl.Vector2, xp : int){
 	append(gems, Xp_Gem{
 		pos = pos,
 		size = 12,
-		value = 5,
+		value = xp,
 		follow_speed = 800,
 	})
 }

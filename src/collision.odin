@@ -11,7 +11,7 @@ collide_projectiles_enemies :: proc(){
 			enemy_take_damage(e, stat_get(game.stats[.Weapon_Damage]))
 			fmt.println(stat_get(game.stats[.Weapon_Damage]))
 			if e.hp <=0{
-				xp_gem_spawn(&game.xp_gems, e.pos)
+				xp_gem_spawn(&game.xp_gems, e.pos, e.xp)
 				unordered_remove(&game.enemies, j)
 				game.kills += 1
 				break

@@ -148,8 +148,8 @@ game_draw :: proc(){
 	defer rl.EndDrawing()
 	rl.ClearBackground(rl.BLACK)
 	game_draw_mode()
-	progress_bar_draw({50, WINDOW_HEIGHT - 200}, f32(game.player.hp), f32(game.player.max_hp))
-	progress_bar_draw({50, WINDOW_HEIGHT - 100}, f32(game.player.xp), f32(player_needed_xp_for_next_level(game.player)), rl.BLUE)
+	progress_bar_draw({50, WINDOW_HEIGHT - 200}, f32(game.player.hp), f32(game.player.max_hp), true)
+	progress_bar_draw({50, WINDOW_HEIGHT - 100}, f32(game.player.xp), f32(player_needed_xp_for_next_level(game.player)), true, rl.BLUE)
 	goal_draw(&game.goal, game.kills)
 
 	switch game.phase{

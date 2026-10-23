@@ -7,6 +7,7 @@ MAX_HP :: 100
 PLAYER_INVUL_TIME :: 0.8
 PLAYER_PICKUP_RADIUS :: 80.0
 XP_NEXT_LEVEL :: 10
+BLINK_SPEED :: 20
 
 Player :: struct{
 	pos : rl.Vector2,
@@ -46,8 +47,10 @@ player_update :: proc(player : ^Player, dt : f32){
 }
 
 player_draw :: proc(player : Player){
+	blink := player.invul_time > 0 && int(player.invul_time * BLINK_SPEED) % 2 == 0
+	color := blink ? rl.Fade(rl.WHITE, 0.3) : rl.WHITE
 	half := rl.Vector2{player.size, player.size}/2
-	rl.DrawRectangleV(player.pos - half, {player.size, player.size}, rl.WHITE)
+	rl.DrawRectangleV(player.pos - half, {player.size, player.size}, color)
 }
 
 player_take_damage :: proc(player : ^Player, amount : int){
