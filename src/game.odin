@@ -6,7 +6,7 @@ import rl "vendor:raylib"
 game : Game
 
 Game_Phase :: enum{
-	Playing, Dead, Level_Up,
+	Playing, Dead, Level_Up, Finished
 }
 
 Game :: struct{
@@ -14,6 +14,9 @@ Game :: struct{
 	phase : Game_Phase,
 	camera : rl.Camera2D,
 	stats : Run_Stats,
+	input : Input_Manager,
+	goal : Goal,
+	kills : int,
 
 	player : Player,
 	weapon : Weapon,
@@ -38,6 +41,9 @@ game_init :: proc(){
 	game = {
 		player = player,
 		weapon = weapon_init(),
+		goal = Goal_Kill{
+			amount = 20,
+		},
 		camera = {
 			target = player.pos,
 			offset = {WINDOW_WIDTH/2, WINDOW_HEIGHT/2},
@@ -45,8 +51,6 @@ game_init :: proc(){
 		},
 		stats = stats_init(WEAPON_PISTOL, PROJECTILE_NORMAL),
 	}
-	// stat_set_base(&game.stats.weapon_damage, 10)
-	// stat_add_flat(&game.stats.weapon_damage, 40)
 }
 
 game_destroy :: proc(){
@@ -62,6 +66,7 @@ game_frame :: proc(){
 }
 
 game_step :: proc(){
+	input_update(&game.input)
 	switch game.phase{
 	case .Playing:
 		game_update()
@@ -69,6 +74,8 @@ game_step :: proc(){
 		if rl.IsKeyPressed(.SPACE) do game_init()
 	case .Level_Up:
 		game_level_up()
+	case .Finished:
+		game_init()
 	}
 }
 
@@ -78,9 +85,11 @@ game_update :: proc(){
 	game.dt = rl.GetFrameTime()
 	player_update(&game.player, game.dt)
 	weapon_update(&game.weapon, game.stats, game.enemies[:], game.dt)
+	enemy_update(game.enemies[:], game.player.pos, game.dt)
 	camera_update(&game.camera, game.player, game.dt)
 	projectile_update(&game.projectiles, game.dt)
 	xp_gem_update(game.xp_gems[:], game.player.pos, stat_get(game.stats[.Pickup_Radius]), game.dt)
+	goal_update(&game.goal, game.dt)
 
 	game.spawn_timer += game.dt
 	if game.spawn_timer >= SPAWN_INTERVAL{
@@ -92,18 +101,23 @@ game_update :: proc(){
 		game.debug_mode = !game.debug_mode
 	}
 
-	enemy_update(game.enemies[:], game.player.pos, game.dt)
+
 	game_collision()
+
 	if game.player.hp <=0{
 		game.phase = .Dead
 	}else if game.player.pending_level_ups > 0{
 		game.phase = .Level_Up
 		game.upgrades, game.upgrade_count = upgrade_roll_choices()
+	} else if goal_finished(game.goal, game.kills){
+		game.phase = .Finished
 	}
+}
 
-	if rl.IsKeyPressed(.ONE){
-		upgrade_apply(&game.stats, UPGRADES[3])
-	}
+game_collision :: proc(){
+	collide_projectiles_enemies()
+	collide_enemies_player()
+	collide_player_gems()
 }
 
 game_level_up :: proc(){
@@ -118,7 +132,7 @@ game_level_up :: proc(){
 		}
 	}
 
-	if game.hovered_upgrade != -1 && rl.IsMouseButtonPressed(.LEFT) do game_pick_upgrade(game.hovered_upgrade)
+	if game.hovered_upgrade != -1 && game.input.pressed[.Left] do game_pick_upgrade(game.hovered_upgrade)
 }
 
 game_pick_upgrade :: proc(slot : int){
@@ -135,7 +149,8 @@ game_draw :: proc(){
 	rl.ClearBackground(rl.BLACK)
 	game_draw_mode()
 	progress_bar_draw({50, WINDOW_HEIGHT - 200}, f32(game.player.hp), f32(game.player.max_hp))
-	progress_bar_draw({50, WINDOW_HEIGHT - 100}, f32(game.player.xp), f32(player_needed_xp_for_next_level(game.player)))
+	progress_bar_draw({50, WINDOW_HEIGHT - 100}, f32(game.player.xp), f32(player_needed_xp_for_next_level(game.player)), rl.BLUE)
+	goal_draw(&game.goal, game.kills)
 
 	switch game.phase{
 	case .Playing:
@@ -143,6 +158,7 @@ game_draw :: proc(){
 		game_draw_end()
 	case .Level_Up:
 		game_draw_level_up()
+	case .Finished:
 	}
 
 	if game.debug_mode do game_debug_draw()
@@ -151,7 +167,6 @@ game_draw :: proc(){
 game_debug_draw :: proc(){
 	rl.DrawFPS(WINDOW_WIDTH - 100, 50)
 }
-
 
 game_draw_mode :: proc(){
 	rl.BeginMode2D(game.camera)

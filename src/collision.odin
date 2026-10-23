@@ -3,12 +3,6 @@ package main
 import "core:fmt"
 import rl "vendor:raylib"
 
-game_collision :: proc(){
-	collide_projectiles_enemies()
-	collide_enemies_player()
-	collide_player_gems()
-}
-
 collide_projectiles_enemies :: proc(){
 	for i := len(game.projectiles) - 1; i >= 0; i -= 1{
 		for j := len(game.enemies) - 1; j >= 0; j -= 1{
@@ -19,6 +13,7 @@ collide_projectiles_enemies :: proc(){
 			if e.hp <=0{
 				xp_gem_spawn(&game.xp_gems, e.pos)
 				unordered_remove(&game.enemies, j)
+				game.kills += 1
 				break
 			}
 			unordered_remove(&game.projectiles, i)
