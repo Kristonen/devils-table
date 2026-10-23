@@ -15,7 +15,7 @@ xp_gem_spawn :: proc(gems : ^[dynamic]Xp_Gem, pos : rl.Vector2){
 	append(gems, Xp_Gem{
 		pos = pos,
 		size = 12,
-		value = 3,
+		value = 50,
 		follow_speed = 800,
 	})
 }

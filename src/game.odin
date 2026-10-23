@@ -23,6 +23,10 @@ Game :: struct{
 
 	xp_gems : [dynamic]Xp_Gem,
 
+	upgrades : [3]int,
+	upgrade_count : int,
+	hovered_upgrade : int,
+
 	spawn_timer : f32,
 	weapon_timer : f32,
 	debug_mode : bool,
@@ -52,6 +56,22 @@ game_destroy :: proc(){
 	delete(game.xp_gems)
 }
 
+game_frame :: proc(){
+	game_step()
+	game_draw()
+}
+
+game_step :: proc(){
+	switch game.phase{
+	case .Playing:
+		game_update()
+	case .Dead:
+		if rl.IsKeyPressed(.SPACE) do game_init()
+	case .Level_Up:
+		game_level_up()
+	}
+}
+
 game_update :: proc(){
 	if game.phase == .Dead do return
 
@@ -78,11 +98,35 @@ game_update :: proc(){
 		game.phase = .Dead
 	}else if game.player.pending_level_ups > 0{
 		game.phase = .Level_Up
+		game.upgrades, game.upgrade_count = upgrade_roll_choices()
 	}
 
 	if rl.IsKeyPressed(.ONE){
 		upgrade_apply(&game.stats, UPGRADES[3])
 	}
+}
+
+game_level_up :: proc(){
+	mouse := rl.GetMousePosition()
+	panel := upgrade_panel_rec(game.upgrade_count)
+	game.hovered_upgrade = -1
+	for card in 0..<game.upgrade_count{
+		rec := upgrade_card_rec(card, panel)
+		if rl.CheckCollisionPointRec(mouse, rec){
+			game.hovered_upgrade = card
+			break
+		}
+	}
+
+	if game.hovered_upgrade != -1 && rl.IsMouseButtonPressed(.LEFT) do game_pick_upgrade(game.hovered_upgrade)
+}
+
+game_pick_upgrade :: proc(slot : int){
+	upgrade := UPGRADES[game.upgrades[slot]]
+	upgrade_apply(&game.stats, upgrade)
+	game.player.pending_level_ups -= 1
+	if game.player.pending_level_ups > 0 do game.upgrades, game.upgrade_count = upgrade_roll_choices()
+	else do game.phase = .Playing
 }
 
 game_draw :: proc(){
@@ -98,9 +142,16 @@ game_draw :: proc(){
 	case .Dead:
 		game_draw_end()
 	case .Level_Up:
-
+		game_draw_level_up()
 	}
+
+	if game.debug_mode do game_debug_draw()
 }
+
+game_debug_draw :: proc(){
+	rl.DrawFPS(WINDOW_WIDTH - 100, 50)
+}
+
 
 game_draw_mode :: proc(){
 	rl.BeginMode2D(game.camera)
@@ -119,9 +170,6 @@ game_debug_draw_mode :: proc(){
 
 	radius = stat_get(game.stats[.Pickup_Radius])
 	rl.DrawCircleV(game.player.pos, radius, {100, 100, 100, 150})
-
-
-	// rl.DrawCircleLinesV(game.player.pos, radius, {100, 100, 100, 255})
 }
 
 game_draw_end :: proc(){
@@ -133,4 +181,14 @@ game_draw_end :: proc(){
 	x := i32(WINDOW_WIDTH/2 - width/2)
 	y := i32(WINDOW_HEIGHT/2 - 25)
 	rl.DrawText(text, x, y, 50, rl.WHITE)
+}
+
+game_draw_level_up :: proc(){
+	rl.DrawRectangleV({0, 0}, {WINDOW_WIDTH, WINDOW_HEIGHT}, rl.Fade(rl.BLACK, 0.7))
+	panel := upgrade_panel_rec(game.upgrade_count)
+	for index in 0..<game.upgrade_count{
+		rec_upgrade := upgrade_card_rec(index, panel)
+		upgrade := UPGRADES[game.upgrades[index]]
+		upgrade_card_draw(rec_upgrade, index + 1, upgrade, index == game.hovered_upgrade)
+	}
 }

@@ -40,16 +40,7 @@ main :: proc(){
 	defer game_destroy()
 
 	for !rl.WindowShouldClose(){
-		switch game.phase{
-		case .Playing:
-			game_update()
-		case .Dead:
-			game_draw_end()
-			if rl.IsKeyPressed(.SPACE){
-				game_init()
-			}
-		}
-		game_draw()
+		game_frame()
 		free_all(context.temp_allocator)
 	}
 }
