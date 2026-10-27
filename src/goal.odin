@@ -4,7 +4,7 @@ import "core:fmt"
 import rl "vendor:raylib"
 
 Goal :: union{
-	Goal_Kill, Goal_Survive
+	Goal_Kill, Goal_Survive,
 }
 
 Goal_Kill :: struct{
@@ -21,7 +21,7 @@ goal_update :: proc(goal : ^Goal, dt : f32){
 	}
 }
 
-goal_draw :: proc(goal : ^Goal, amount : int){
+goal_draw :: proc(goal : Goal, amount : int){
 	if kill, is_kill := goal.(Goal_Kill); is_kill do goal_kill_draw(kill, amount)
 	else if survive, is_survive := goal.(Goal_Survive); is_survive do goal_survive_draw(survive)
 }
@@ -46,7 +46,13 @@ goal_draw_text :: proc(text : cstring){
 }
 
 goal_finished :: proc(goal : Goal, amount : int) -> bool{
-	if kill, is_kill := goal.(Goal_Kill); is_kill do return kill.amount <= amount
-	else if survive, is_survive := goal.(Goal_Survive); is_survive do return survive.time <= 0
+	switch g in goal{
+	case Goal_Kill:
+		return g.amount <= amount
+	case Goal_Survive:
+		return g.time <= 0
+	case nil:
+		return false
+	}
 	return false
 }

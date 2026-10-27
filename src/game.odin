@@ -17,6 +17,7 @@ Game :: struct{
 	input : Input_Manager,
 	goal : Goal,
 	kills : int,
+	alive : int,
 
 	player : Player,
 	weapon : Weapon,
@@ -96,9 +97,9 @@ game_update :: proc(){
 	xp_gem_update(game.xp_gems[:], game.player.pos, stat_get(game.stats[.Pickup_Radius]), game.dt)
 	goal_update(&game.goal, game.dt)
 
-	if spawner_can_spawn(game.spawner){
+	if spawner_try_spawn(&game.spawner, game.alive){
 		game.spawner.timer = SPAWN_INTERVAL
-		game.spawner.amount += 1
+		game.alive += 1
 		enemy_spawn(&game.enemies, game.player.pos)
 	}
 
@@ -155,7 +156,7 @@ game_draw :: proc(){
 	game_draw_mode()
 	progress_bar_draw({50, WINDOW_HEIGHT - 200}, f32(game.player.hp), f32(game.player.max_hp), true)
 	progress_bar_draw({50, WINDOW_HEIGHT - 100}, f32(game.player.xp), f32(player_needed_xp_for_next_level(game.player)), true, rl.BLUE)
-	goal_draw(&game.goal, game.kills)
+	goal_draw(game.goal, game.kills)
 
 	switch game.phase{
 	case .Playing:
