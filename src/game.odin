@@ -18,6 +18,7 @@ Game :: struct{
 	goal : Goal,
 	kills : int,
 	alive : int,
+	time : f32,
 
 	player : Player,
 	weapon : Weapon,
@@ -43,8 +44,8 @@ game_init :: proc(){
 	game = {
 		player = player,
 		weapon = weapon_init(),
-		goal = Goal_Kill{
-			amount = 20,
+		goal = Goal_Survive{
+			time = 5*60,
 		},
 		camera = {
 			target = player.pos,
@@ -85,9 +86,8 @@ game_step :: proc(){
 }
 
 game_update :: proc(){
-	if game.phase == .Dead do return
-
 	game.dt = rl.GetFrameTime()
+	game.time += game.dt
 	player_update(&game.player, game.dt)
 	weapon_update(&game.weapon, game.stats, game.enemies[:], game.dt)
 	enemy_update(game.enemies[:], game.player.pos, game.dt)
@@ -95,10 +95,9 @@ game_update :: proc(){
 	camera_update(&game.camera, game.player, game.dt)
 	projectile_update(&game.projectiles, game.dt)
 	xp_gem_update(game.xp_gems[:], game.player.pos, stat_get(game.stats[.Pickup_Radius]), game.dt)
-	goal_update(&game.goal, game.dt)
+	// goal_update(&game.goal, game.dt)
 
 	if spawner_try_spawn(&game.spawner, game.alive){
-		game.spawner.timer = SPAWN_INTERVAL
 		game.alive += 1
 		enemy_spawn(&game.enemies, game.player.pos)
 	}
@@ -107,8 +106,15 @@ game_update :: proc(){
 		game.debug_mode = !game.debug_mode
 	}
 
-
 	game_collision()
+
+	switch g in game.goal{
+	case Goal_Kill:
+		part := g.amount/game.kills
+	case Goal_Survive:
+		part := int(1-(g.time-game.time)/g.time)
+		spawn_stage_check(&game.spawner, part*100)
+	}
 
 	if game.player.hp <=0{
 		game.phase = .Dead
@@ -156,7 +162,13 @@ game_draw :: proc(){
 	game_draw_mode()
 	progress_bar_draw({50, WINDOW_HEIGHT - 200}, f32(game.player.hp), f32(game.player.max_hp), true)
 	progress_bar_draw({50, WINDOW_HEIGHT - 100}, f32(game.player.xp), f32(player_needed_xp_for_next_level(game.player)), true, rl.BLUE)
-	goal_draw(game.goal, game.kills)
+
+	switch g in game.goal{
+	case Goal_Kill:
+		goal_kill_draw(g, game.kills)
+	case Goal_Survive:
+		goal_survive_draw(g, g.time - game.time)
+	}
 
 	switch game.phase{
 	case .Playing:

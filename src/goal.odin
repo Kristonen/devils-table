@@ -15,25 +15,25 @@ Goal_Survive :: struct{
 	time : f32,
 }
 
-goal_update :: proc(goal : ^Goal, dt : f32){
-	if survive, is_survive := &goal.(Goal_Survive); is_survive{
-		survive.time -= dt
-	}
-}
+// goal_update :: proc(goal : ^Goal, dt : f32){
+// 	if survive, is_survive := &goal.(Goal_Survive); is_survive{
+// 		survive.time -= dt
+// 	}
+// }
 
-goal_draw :: proc(goal : Goal, amount : int){
-	if kill, is_kill := goal.(Goal_Kill); is_kill do goal_kill_draw(kill, amount)
-	else if survive, is_survive := goal.(Goal_Survive); is_survive do goal_survive_draw(survive)
-}
+// goal_draw :: proc(goal : Goal, amount : int){
+// 	if kill, is_kill := goal.(Goal_Kill); is_kill do goal_kill_draw(kill, amount)
+// 	else if survive, is_survive := goal.(Goal_Survive); is_survive do goal_survive_draw(survive)
+// }
 
 goal_kill_draw :: proc(goal : Goal_Kill, amount : int){
 	text := fmt.ctprintf("%v/%v Enemies", amount, goal.amount)
 	goal_draw_text(text)
 }
 
-goal_survive_draw :: proc(goal : Goal_Survive){
-	minutes := int(goal.time / 60)
-	seconds := i32(goal.time) % 60
+goal_survive_draw :: proc(goal : Goal_Survive, time : f32){
+	minutes := int(time / 60)
+	seconds := i32(time) % 60
 	text := fmt.ctprintf("%02d : %02d", minutes, seconds)
 	goal_draw_text(text)
 }
