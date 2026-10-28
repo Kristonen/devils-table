@@ -13,8 +13,7 @@ collide_projectiles_enemies :: proc(){
 			if e.hp <=0{
 				xp_gem_spawn(&game.xp_gems, e.pos, e.xp)
 				unordered_remove(&game.enemies, j)
-				game.kills += 1
-				game.alive -= 1
+				game_add_kill()
 				break
 			}
 			unordered_remove(&game.projectiles, i)

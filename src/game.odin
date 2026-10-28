@@ -45,7 +45,7 @@ game_init :: proc(){
 		player = player,
 		weapon = weapon_init(),
 		goal = Goal_Survive{
-			time = 5*60,
+			total = 5*60,
 		},
 		camera = {
 			target = player.pos,
@@ -95,7 +95,7 @@ game_update :: proc(){
 	camera_update(&game.camera, game.player, game.dt)
 	projectile_update(&game.projectiles, game.dt)
 	xp_gem_update(game.xp_gems[:], game.player.pos, stat_get(game.stats[.Pickup_Radius]), game.dt)
-	// goal_update(&game.goal, game.dt)
+	goal_update(&game.goal, game.dt)
 
 	if spawner_try_spawn(&game.spawner, game.alive){
 		game.alive += 1
@@ -113,7 +113,6 @@ game_update :: proc(){
 		part := g.amount/game.kills
 	case Goal_Survive:
 		part := int(1-(g.time-game.time)/g.time)
-		spawn_stage_check(&game.spawner, part*100)
 	}
 
 	if game.player.hp <=0{
@@ -121,7 +120,7 @@ game_update :: proc(){
 	}else if game.player.pending_level_ups > 0{
 		game.phase = .Level_Up
 		game.upgrades, game.upgrade_count = upgrade_roll_choices()
-	} else if goal_finished(game.goal, game.kills){
+	} else if goal_finished(game.goal){
 		game.phase = .Finished
 	}
 }
@@ -165,9 +164,9 @@ game_draw :: proc(){
 
 	switch g in game.goal{
 	case Goal_Kill:
-		goal_kill_draw(g, game.kills)
+		goal_kill_draw(g)
 	case Goal_Survive:
-		goal_survive_draw(g, g.time - game.time)
+		goal_survive_draw(g)
 	}
 
 	switch game.phase{
@@ -223,5 +222,13 @@ game_draw_level_up :: proc(){
 		rec_upgrade := upgrade_card_rec(index, panel)
 		upgrade := UPGRADES[game.upgrades[index]]
 		upgrade_card_draw(rec_upgrade, index + 1, upgrade, index == game.hovered_upgrade)
+	}
+}
+
+game_add_kill :: proc(){
+	game.kills += 1
+	game.alive -= 1
+	if kill, is_kill := game.goal.(Goal_Kill); is_kill{
+		kill.kills += 1
 	}
 }
