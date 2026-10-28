@@ -52,7 +52,7 @@ goal_progress :: proc(goal : Goal) -> f32{
 	case Goal_Kill:
 		return clamp(f32(g.kills)/f32(g.amount), 0, 1)
 	case Goal_Survive:
-		return clamp(1 - g.time / g.total, 0, 1)
+		return clamp(g.time / g.total, 0, 1)
 	case nil:
 		return 0
 	}

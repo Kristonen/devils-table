@@ -16,6 +16,7 @@ Game :: struct{
 	stats : Run_Stats,
 	input : Input_Manager,
 	goal : Goal,
+	stage : f32,
 	kills : int,
 	alive : int,
 	time : f32,
@@ -33,7 +34,6 @@ Game :: struct{
 	upgrade_count : int,
 	hovered_upgrade : int,
 
-	spawn_timer : f32,
 	weapon_timer : f32,
 	debug_mode : bool,
 }
@@ -52,10 +52,8 @@ game_init :: proc(){
 			offset = {WINDOW_WIDTH/2, WINDOW_HEIGHT/2},
 			zoom = 1,
 		},
-		spawner = {
-			max_amount = 2,
-		},
 		stats = stats_init(WEAPON_PISTOL, PROJECTILE_NORMAL),
+		stage = -1.0,
 	}
 }
 
@@ -108,11 +106,10 @@ game_update :: proc(){
 
 	game_collision()
 
-	switch g in game.goal{
-	case Goal_Kill:
-		part := g.amount/game.kills
-	case Goal_Survive:
-		part := int(1-(g.time-game.time)/g.time)
+	if stage := spawn_stage_at(goal_progress(game.goal)); stage.from != game.stage{
+		game.spawner.interval = stage.interval
+		game.spawner.max_amount = stage.max_alive
+		game.stage = stage.from
 	}
 
 	if game.player.hp <=0{
