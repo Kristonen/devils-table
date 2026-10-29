@@ -16,9 +16,7 @@ Game :: struct{
 	stats : Run_Stats,
 	input : Input_Manager,
 	goal : Goal,
-	stage : f32,
 	kills : int,
-	alive : int,
 	time : f32,
 
 	player : Player,
@@ -53,7 +51,6 @@ game_init :: proc(){
 			zoom = 1,
 		},
 		stats = stats_init(WEAPON_PISTOL, PROJECTILE_NORMAL),
-		stage = -1.0,
 	}
 }
 
@@ -95,22 +92,25 @@ game_update :: proc(){
 	xp_gem_update(game.xp_gems[:], game.player.pos, stat_get(game.stats[.Pickup_Radius]), game.dt)
 	goal_update(&game.goal, game.dt)
 
-	if spawner_try_spawn(&game.spawner, game.alive){
-		game.alive += 1
-		enemy_spawn(&game.enemies, game.player.pos)
-	}
+	// if kind, ok := spawner_try_spawn(&game.spawner, enemy_count_by_kind(game.enemies[:])); ok{
+	// 	enemy_spawn(&game.enemies, game.player.pos, kind)
+	// }
 
 	if rl.IsKeyPressed(.F2){
 		game.debug_mode = !game.debug_mode
 	}
 
+	if rl.IsKeyPressed(.F5){
+		enemy_spawn(&game.enemies, game.player.pos, .Grobian)
+	}
+
 	game_collision()
 
-	if stage := spawn_stage_at(goal_progress(game.goal)); stage.from != game.stage{
-		game.spawner.interval = stage.interval
-		game.spawner.max_amount = stage.max_alive
-		game.stage = stage.from
-	}
+	stage := spawn_stage_at(goal_progress(game.goal))
+	game.spawner.interval = stage.interval
+	game.spawner.limit = stage.limit
+	game.spawner.batch = stage.batch
+	game_spawn_enemies()
 
 	if game.player.hp <=0{
 		game.phase = .Dead
@@ -120,6 +120,22 @@ game_update :: proc(){
 	} else if goal_finished(game.goal){
 		game.phase = .Finished
 	}
+}
+
+game_spawn_enemies :: proc(){
+	if !spawner_ready(game.spawner) do return
+
+	counts := enemy_count_by_kind(game.enemies[:])
+	spawned := 0
+	for spawned < game.spawner.batch{
+		kind, ok := spawner_next_kind(game.spawner, counts)
+		if !ok do break
+		enemy_spawn(&game.enemies, game.player.pos, kind)
+		counts[kind] += 1
+		spawned += 1
+	}
+
+	if spawned > 0 do game.spawner.timer = game.spawner.interval
 }
 
 game_collision :: proc(){
@@ -180,6 +196,15 @@ game_draw :: proc(){
 
 game_debug_draw :: proc(){
 	rl.DrawFPS(WINDOW_WIDTH - 100, 50)
+	counts := enemy_count_by_kind(game.enemies[:])
+	x, y : i32
+	x = 50
+	y = 50
+	for count, kind in counts{
+		text := fmt.ctprintf("%v: %v/%v", kind, count, game.spawner.limit[kind])
+		rl.DrawText(text, x, y, 20, rl.WHITE)
+		y += 50
+	}
 }
 
 game_draw_mode :: proc(){
@@ -193,7 +218,6 @@ game_draw_mode :: proc(){
 }
 
 game_debug_draw_mode :: proc(){
-
 	radius := stat_get(game.stats[.Weapon_Range])
 	rl.DrawCircleV(game.player.pos, radius, {255, 0, 0, 150})
 
@@ -224,8 +248,7 @@ game_draw_level_up :: proc(){
 
 game_add_kill :: proc(){
 	game.kills += 1
-	game.alive -= 1
-	if kill, is_kill := game.goal.(Goal_Kill); is_kill{
+	if kill, is_kill := &game.goal.(Goal_Kill); is_kill{
 		kill.kills += 1
 	}
 }

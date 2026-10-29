@@ -23,11 +23,6 @@ goal_update :: proc(goal : ^Goal, dt : f32){
 	}
 }
 
-// goal_draw :: proc(goal : Goal, amount : int){
-// 	if kill, is_kill := goal.(Goal_Kill); is_kill do goal_kill_draw(kill, amount)
-// 	else if survive, is_survive := goal.(Goal_Survive); is_survive do goal_survive_draw(survive)
-// }
-
 goal_kill_draw :: proc(goal : Goal_Kill){
 	text := fmt.ctprintf("%v/%v Enemies", goal.kills, goal.amount)
 	goal_draw_text(text)
@@ -62,15 +57,3 @@ goal_progress :: proc(goal : Goal) -> f32{
 goal_finished :: proc(goal : Goal) -> bool{
 	return goal_progress(goal) >= 1
 }
-
-// goal_finished :: proc(goal : Goal) -> bool{
-// 	switch g in goal{
-// 	case Goal_Kill:
-// 		return g.kills <= g.amount
-// 	case Goal_Survive:
-// 		return g.time >= g.total
-// 	case nil:
-// 		return false
-// 	}
-// 	return false
-// }
