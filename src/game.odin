@@ -5,6 +5,10 @@ import rl "vendor:raylib"
 
 game : Game
 
+Run_Stage :: enum{
+	Normal, Boss, Cleared,
+}
+
 Game_Phase :: enum{
 	Playing, Dead, Level_Up, Finished
 }
@@ -18,6 +22,7 @@ Game :: struct{
 	goal : Goal,
 	kills : int,
 	time : f32,
+	run_stage : Run_Stage,
 
 	player : Player,
 	weapon : Weapon,
@@ -106,7 +111,15 @@ game_update :: proc(){
 
 	game_collision()
 
-	stage := spawn_stage_at(goal_progress(game.goal))
+	stage : Spawn_Stage
+	switch game.run_stage{
+	case .Normal:
+		stage = spawn_stage_at(goal_progress(game.goal))
+	case .Boss:
+		stage = BOSS_STAGE
+	case .Cleared:
+	}
+
 	game.spawner.interval = stage.interval
 	game.spawner.limit = stage.limit
 	game.spawner.batch = stage.batch
@@ -114,12 +127,16 @@ game_update :: proc(){
 
 	if game.player.hp <=0{
 		game.phase = .Dead
+	}else if game.run_stage == .Cleared{
+		game.phase = .Finished
 	}else if game.player.pending_level_ups > 0{
 		game.phase = .Level_Up
 		game.upgrades, game.upgrade_count = upgrade_roll_choices()
-	} else if goal_finished(game.goal){
-		game.phase = .Finished
+	} else if game.run_stage == .Normal && goal_finished(game.goal){
+		game.run_stage = .Boss
 	}
+
+	if rl.IsKeyPressed(.F6) do game.run_stage = .Boss
 }
 
 game_spawn_enemies :: proc(){
@@ -175,11 +192,16 @@ game_draw :: proc(){
 	progress_bar_draw({50, WINDOW_HEIGHT - 200}, f32(game.player.hp), f32(game.player.max_hp), true)
 	progress_bar_draw({50, WINDOW_HEIGHT - 100}, f32(game.player.xp), f32(player_needed_xp_for_next_level(game.player)), true, rl.BLUE)
 
-	switch g in game.goal{
-	case Goal_Kill:
-		goal_kill_draw(g)
-	case Goal_Survive:
-		goal_survive_draw(g)
+
+	if game.run_stage == .Normal{
+		switch g in game.goal{
+		case Goal_Kill:
+			goal_kill_draw(g)
+		case Goal_Survive:
+			goal_survive_draw(g)
+		}
+	} else{
+		game_draw_boss_bar()
 	}
 
 	switch game.phase{
@@ -192,6 +214,19 @@ game_draw :: proc(){
 	}
 
 	if game.debug_mode do game_debug_draw()
+}
+
+game_draw_boss_bar :: proc(){
+	for e in game.enemies{
+		if e.kind != .Boss do continue
+		rec := rl.Rectangle{
+			x = WINDOW_WIDTH/4,
+			y = 50,
+			width = WINDOW_WIDTH/2,
+			height = 35,
+		}
+		progress_bar_draw_rec(rec, e.hp, e.max_hp, rl.RED)
+	}
 }
 
 game_debug_draw :: proc(){
@@ -246,9 +281,10 @@ game_draw_level_up :: proc(){
 	}
 }
 
-game_add_kill :: proc(){
+game_add_kill :: proc(kind : Enemy_Kind){
 	game.kills += 1
 	if kill, is_kill := &game.goal.(Goal_Kill); is_kill{
 		kill.kills += 1
 	}
+	if kind == .Boss do game.run_stage = .Cleared
 }

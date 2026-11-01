@@ -13,6 +13,18 @@ Spawn_Stage :: struct{
 	limit : [Enemy_Kind]int,
 }
 
+BOSS_STAGE :: Spawn_Stage{
+	interval = 2,
+	batch = 1,
+	limit = {
+		.Standard = 0,
+		.Grobian = 0,
+		.Spezialist = 0,
+		.Champion = 0,
+		.Boss = 1,
+	}
+}
+
 Spawner :: struct{
 	timer : f32,
 	interval : f32,
@@ -46,19 +58,16 @@ SPAWN_STAGES := [?]Spawn_Stage{
 		}
 	},
 	{
-		from = 0.25,
+		from = 0.2,
 		interval = 1,
 		batch = 6,
-	},
-	{
-		from = 0.50,
-		interval = 0.5,
-		batch = 8,
-	},
-	{
-		from = 0.75,
-		interval = 0.25,
-		batch = 10,
+		limit = {
+			.Standard = 30,
+			.Grobian = 15,
+			.Spezialist = 0,
+			.Champion = 0,
+			.Boss = 0,
+		}
 	},
 }
 

@@ -17,6 +17,7 @@ Enemy :: struct{
 	speed : f32,
 	damage : int,
 	hp : f32,
+	max_hp : f32,
 	xp : int,
 }
 
@@ -34,7 +35,7 @@ ENEMY_DEFS := [Enemy_Kind]Enemy_Def{
 	.Grobian = {size = 40, speed = 125, hp = 40, damage = 20, xp_value = 8, color = rl.GREEN},
 	.Spezialist = {},
 	.Champion = {},
-	.Boss = {},
+	.Boss = {size = 100, speed = 50, hp = 500, damage = 50, xp_value = 100, color = rl.ORANGE},
 }
 
 enemy_spawn :: proc(enemies : ^[dynamic]Enemy, center : rl.Vector2, kind : Enemy_Kind){
@@ -48,16 +49,9 @@ enemy_spawn :: proc(enemies : ^[dynamic]Enemy, center : rl.Vector2, kind : Enemy
 		speed = enemy_def.speed,
 		damage = enemy_def.damage,
 		hp = enemy_def.hp,
+		max_hp = enemy_def.hp,
 		xp = enemy_def.xp_value,
 	})
-	// append(enemies, Enemy{
-	// 	pos = center + offset,
-	// 	size = rand.float32_range(16, 28),
-	// 	speed = 150,
-	// 	damage = 2,
-	// 	hp = 50,
-	// 	xp = rand.int_range(2, 8)
-	// })
 }
 
 enemy_update :: proc(enemies : []Enemy, target : rl.Vector2, dt : f32){

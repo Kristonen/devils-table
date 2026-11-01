@@ -26,3 +26,12 @@ progress_bar_draw :: proc(pos : rl.Vector2, value : f32, max_value : f32, show_t
 		draw_text_centered(text, i32(pos.x) + PROGRESS_BAR_WIDTH/2, i32(pos.y) + PROGRESS_BAR_HEIGHT/2 - 10, 20, rl.WHITE)
 	}
 }
+
+progress_bar_draw_rec :: proc(rec : rl.Rectangle, value : f32, max_value : f32, color : rl.Color){
+	ratio := clamp(value/max_value, 0, 1)
+	width := rec.width * ratio
+
+	rl.DrawRectangleRec(rec, rl.GRAY)
+	rl.DrawRectangleV({rec.x, rec.y}, {width, rec.height}, color)
+	rl.DrawRectangleLinesEx(rec, 2, rl.WHITE)
+}
